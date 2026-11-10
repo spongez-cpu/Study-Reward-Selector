@@ -34,16 +34,18 @@
 
         .input-area {
             display: flex;
+            flex-direction: column;
             gap: 10px;
             margin-bottom: 20px;
         }
 
         input {
-            flex: 1;
+            width: 100%;
             padding: 10px;
             border: 2px solid #ddd;
             border-radius: 6px;
             font-size: 16px;
+            box-sizing: border-box;
         }
 
         button {
@@ -76,6 +78,37 @@
             justify-content: space-between;
             align-items: center;
             border-left: 5px solid #3498db;
+            gap: 10px;
+        }
+
+        .reward-info {
+            display: flex;
+            flex-direction: column;
+            overflow: hidden;
+            flex: 1;
+        }
+
+        .reward-name {
+            font-weight: bold;
+            color: #333;
+        }
+
+        .reward-link-text {
+            font-size: 12px;
+            color: #3498db;
+            text-decoration: none;
+            white-space: nowrap;
+            overflow: hidden;
+            text-overflow: ellipsis;
+        }
+
+        .reward-link-text:hover {
+            text-decoration: underline;
+        }
+
+        .reward-actions {
+            display: flex;
+            gap: 5px;
         }
 
         .delete-btn {
@@ -230,8 +263,9 @@
     <div class="container">
         <h1>Reward Menu 🎁</h1>
         <div class="input-area">
-            <input type="text" id="reward-input" placeholder="Add reward (e.g., 15m YouTube)">
-            <button onclick="addReward()" style="background-color: #3498db;">Add</button>
+            <input type="text" id="reward-input" placeholder="Reward name (e.g., 15m YouTube)">
+            <input type="text" id="reward-link-input" placeholder="Optional link (e.g., https://youtube.com)">
+            <button onclick="addReward()" style="background-color: #3498db;">Add Reward</button>
         </div>
         <ul id="reward-list"></ul>
     </div>
@@ -261,10 +295,20 @@
         let totalHoursStudied = parseFloat(localStorage.getItem('totalHoursStudied')) || 0;
 
         let savedRewards = localStorage.getItem('studyRewards');
-        let rewards = savedRewards ? JSON.parse(savedRewards) : ["15m YouTube", "Snack Break", "Episode of Show", "10m Walk"];
+        let rewards = savedRewards ? JSON.parse(savedRewards) : [
+            { name: "15m YouTube", link: "https://www.youtube.com" },
+            { name: "Snack Break", link: "" },
+            { name: "Episode of Show", link: "" },
+            { name: "10m Walk", link: "" }
+        ];
         
         if (!rewards || rewards.length <= 1) {
-            rewards = ["15m YouTube", "Snack Break", "Episode of Show", "10m Walk"];
+            rewards = [
+                { name: "15m YouTube", link: "https://www.youtube.com" },
+                { name: "Snack Break", link: "" },
+                { name: "Episode of Show", link: "" },
+                { name: "10m Walk", link: "" }
+            ];
         }
 
         let timerInterval = null;
@@ -325,7 +369,25 @@
             list.innerHTML = "";
             rewards.forEach((reward, index) => {
                 const li = document.createElement("li");
-                li.innerHTML = `${reward} <button class="delete-btn" onclick="deleteReward(${index})">Delete</button>`;
+                
+                let linkHtml = "";
+                if (reward.link && reward.link.trim() !== "") {
+                    let formattedLink = reward.link.trim();
+                    if (!formattedLink.startsWith('http://') && !formattedLink.startsWith('https://')) {
+                        formattedLink = 'https://' + formattedLink;
+                    }
+                    linkHtml = `<a class="reward-link-text" href="${formattedLink}" target="_blank">🔗 Visit Link</a>`;
+                }
+
+                li.innerHTML = `
+                    <div class="reward-info">
+                        <span class="reward-name">${reward.name}</span>
+                        ${linkHtml}
+                    </div>
+                    <div class="reward-actions">
+                        <button class="delete-btn" onclick="deleteReward(${index})">Delete</button>
+                    </div>
+                `;
                 list.appendChild(li);
             });
 
@@ -342,6 +404,118 @@
             }
 
             rewards.forEach((reward, index) => {
+                const div = document.createElement("div");
+                div.className = "spinner-item" + (index === activeIndex ? " active" : "");
+                div.innerText = reward.name;
+                spinnerBox.appendChild(div);
+            });
+        }
+
+        function addReward() {
+            const nameInput = document.getElementById("reward-input");
+            const linkInput = document.getElementById("reward-link-input");
+            
+            const nameText = nameInput.value.trim();
+            const linkText = linkInput.value.trim();
+            
+            if (nameText !== "") {
+                rewards.push({ name: nameText, link: linkText });
+                nameInput.value = "";
+                linkInput.value = "";
+                saveData();
+                updateUI();
+            }
+        }
+
+        function deleteReward(index) {
+            rewards.splice(index, 1);
+            saveData();
+            updateUI();
+        }
+
+        function spinWheel() {
+            if (isSpinning) return;
+
+            if (studyCoins < 1) {
+                alert("Not enough coins! Study more to earn coins.");
+                return;
+            }
+            if (rewards.length === 0) {
+                alert("Add some rewards to the menu first!");
+                return;
+            }
+
+            studyCoins -= 1;
+            saveData();
+            updateUI();
+
+            isSpinning = true;
+            document.getElementById("result").innerText = "Selecting a reward...";
+
+            const winningIndex = Math.floor(Math.random() * rewards.length);
+            let currentIndex = 0;
+            let totalSteps = rewards.length * 3 + winningIndex;
+            let speed = 60;
+            let step = 0;
+
+            function animateSpin() {
+                updateSpinnerUI(currentIndex);
+                
+                currentIndex = (currentIndex + 1) % rewards.length;
+                step++;
+
+                if (step < totalSteps) {
+                    if (step > totalSteps - 12) {
+                        speed += 35;
+                    }
+                    setTimeout(animateSpin, speed);
+                } else {
+                    updateSpinnerUI(winningIndex);
+                    const wonReward = rewards[winningIndex];
+                    
+                    let winHtml = `🎉 Reward Won: ${wonReward.name}!`;
+                    if (wonReward.link && wonReward.link.trim() !== "") {
+                        let formattedLink = wonReward.link.trim();
+                        if (!formattedLink.startsWith('http://') && !formattedLink.startsWith('https://')) {
+                            formattedLink = 'https://' + formattedLink;
+                        }
+                        winHtml += ` <br><a href="${formattedLink}" target="_blank" style="font-size: 15px; color: #3498db;">🔗 Open Reward Link</a>`;
+                    }
+                    
+                    document.getElementById("result").innerHTML = winHtml;
+                    isSpinning = false;
+                }
+            }
+
+            animateSpin();
+        }
+
+        function saveData() {
+            localStorage.setItem('studyCoins', studyCoins);
+            localStorage.setItem('totalHoursStudied', totalHoursStudied);
+            localStorage.setItem('studyRewards', JSON.stringify(rewards));
+        }
+
+        function resetCoinsOnly() {
+            studyCoins = 0;
+            saveData();
+            updateUI();
+            document.getElementById("result").innerText = "Coins reset to 0!";
+        }
+
+        function resetData() {
+            if (confirm("Are you sure you want to reset all data and coins?")) {
+                localStorage.clear();
+                location.reload();
+            }
+        }
+
+        // Initialize UI on load
+        updateUI();
+    </script>
+</body>
+
+</html>eward, index) => {
                 const div = document.createElement("div");
                 div.className = "spinner-item" + (index === activeIndex ? " active" : "");
                 div.innerText = reward;
