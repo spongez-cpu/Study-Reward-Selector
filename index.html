@@ -1,0 +1,441 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Study Reward Selector</title>
+    <style>
+        body {
+            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+            background-color: #f4f7f6;
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            padding: 20px;
+            margin: 0;
+        }
+
+        .container {
+            background: white;
+            padding: 30px;
+            border-radius: 12px;
+            box-shadow: 0 4px 15px rgba(0, 0, 0, 0.1);
+            width: 100%;
+            max-width: 450px;
+            text-align: center;
+            margin-bottom: 20px;
+        }
+
+        h1 {
+            color: #333;
+            margin-top: 0;
+        }
+
+        .input-area {
+            display: flex;
+            gap: 10px;
+            margin-bottom: 20px;
+        }
+
+        input {
+            flex: 1;
+            padding: 10px;
+            border: 2px solid #ddd;
+            border-radius: 6px;
+            font-size: 16px;
+        }
+
+        button {
+            background-color: #2ecc71;
+            color: white;
+            border: none;
+            padding: 10px 15px;
+            border-radius: 6px;
+            cursor: pointer;
+            font-size: 16px;
+            font-weight: bold;
+        }
+
+        button:hover {
+            opacity: 0.9;
+        }
+
+        ul {
+            list-style: none;
+            padding: 0;
+            text-align: left;
+        }
+
+        li {
+            background: #f9f9f9;
+            padding: 12px;
+            margin-bottom: 8px;
+            border-radius: 6px;
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            border-left: 5px solid #3498db;
+        }
+
+        .delete-btn {
+            background-color: #e74c3c;
+            padding: 5px 10px;
+            font-size: 12px;
+        }
+
+        .delete-btn:hover {
+            background-color: #c0392b;
+        }
+
+        /* Stats & Coins */
+        .stats-box {
+            background: #e8f8f5;
+            border: 2px solid #1abc9c;
+            padding: 15px;
+            border-radius: 8px;
+            margin-bottom: 20px;
+            font-size: 18px;
+            color: #16a085;
+            font-weight: bold;
+        }
+
+        /* Timer Styles */
+        .timer-display {
+            font-size: 36px;
+            font-weight: bold;
+            color: #333;
+            margin: 15px 0;
+            font-family: monospace;
+        }
+
+        .timer-buttons {
+            display: flex;
+            gap: 10px;
+        }
+
+        .timer-buttons button {
+            flex: 1;
+        }
+
+        #stop-timer-btn {
+            background-color: #e74c3c;
+        }
+
+        #stop-timer-btn:hover {
+            background-color: #c0392b;
+        }
+
+        /* Vertical Growing Selector Box */
+        .spinner-box {
+            display: flex;
+            flex-direction: column;
+            gap: 10px;
+            margin: 20px 0;
+            padding: 12px;
+            background: #fafafa;
+            border-radius: 8px;
+            border: 3px solid #3498db;
+        }
+
+        .spinner-item {
+            background: white;
+            border: 2px solid #ddd;
+            padding: 12px;
+            border-radius: 6px;
+            font-size: 16px;
+            font-weight: bold;
+            color: #333;
+            text-align: center;
+            transition: all 0.1s ease;
+        }
+
+        .spinner-item.active {
+            border: 3px solid #3498db;
+            background-color: #ebf5fb;
+            color: #2980b9;
+            transform: scale(1.02);
+            box-shadow: 0 4px 10px rgba(52, 152, 219, 0.3);
+        }
+
+        #spin-btn {
+            background-color: #9b59b6;
+            width: 100%;
+            margin-top: 5px;
+        }
+
+        #spin-btn:hover {
+            background-color: #8e44ad;
+        }
+
+        #result {
+            font-weight: bold;
+            color: #8e44ad;
+            margin-top: 15px;
+            font-size: 18px;
+        }
+
+        .reset-buttons-group {
+            display: flex;
+            gap: 10px;
+            margin-top: 10px;
+        }
+
+        .reset-data-btn, .reset-coins-btn {
+            flex: 1;
+            font-size: 12px;
+            padding: 8px 10px;
+            border-radius: 6px;
+        }
+
+        .reset-coins-btn {
+            background-color: #f39c12;
+        }
+
+        .reset-coins-btn:hover {
+            background-color: #d68910;
+        }
+
+        .reset-data-btn {
+            background-color: #95a5a6;
+        }
+
+        .reset-data-btn:hover {
+            background-color: #7f8c8d;
+        }
+    </style>
+</head>
+
+<body>
+
+    <!-- STUDY TIMER -->
+    <div class="container">
+        <h1>Study Timer ⏱️</h1>
+        <div class="stats-box">
+            Coins Available: <span id="coin-count">0</span> 🪙<br>
+            <span style="font-size: 14px; color: #666; font-weight: normal;">Total Hours Studied: <span
+                    id="total-hours">0</span>h</span>
+        </div>
+
+        <div class="timer-display" id="timer-display">00:00:00</div>
+
+        <div class="timer-buttons">
+            <button id="start-timer-btn" onclick="toggleTimer()">Start Study</button>
+            <button id="stop-timer-btn" onclick="stopAndClaimTimer()">Finish & Claim</button>
+        </div>
+        <p style="font-size: 13px; color: #666; margin-top: 15px;">(1 Hour studied = 1 Reward Coin)</p>
+    </div>
+
+    <!-- REWARD LIST -->
+    <div class="container">
+        <h1>Reward Menu 🎁</h1>
+        <div class="input-area">
+            <input type="text" id="reward-input" placeholder="Add reward (e.g., 15m YouTube)">
+            <button onclick="addReward()" style="background-color: #3498db;">Add</button>
+        </div>
+        <ul id="reward-list"></ul>
+    </div>
+
+    <!-- VERTICAL SELECTOR -->
+    <div class="container">
+        <h1>Spin for Rewards! 🎰</h1>
+        <p>Cost to spin: <strong>1 Coin</strong></p>
+        
+        <div class="spinner-box" id="spinner-box">
+            <!-- Full list renders here vertically and grows as items are added -->
+        </div>
+
+        <button id="spin-btn" onclick="spinWheel()">Spin the List! (-1 Coin)</button>
+        <div id="result"></div>
+        
+        <div class="reset-buttons-group">
+            <button class="reset-coins-btn" onclick="resetCoinsOnly()">Reset Coins (0)</button>
+            <button class="reset-data-btn" onclick="resetData()">Reset All Data</button>
+        </div>
+    </div>
+
+    <script>
+        let savedCoins = localStorage.getItem('studyCoins');
+        let studyCoins = savedCoins !== null ? parseFloat(savedCoins) : 0;
+        
+        let totalHoursStudied = parseFloat(localStorage.getItem('totalHoursStudied')) || 0;
+
+        let savedRewards = localStorage.getItem('studyRewards');
+        let rewards = savedRewards ? JSON.parse(savedRewards) : ["15m YouTube", "Snack Break", "Episode of Show", "10m Walk"];
+        
+        if (!rewards || rewards.length <= 1) {
+            rewards = ["15m YouTube", "Snack Break", "Episode of Show", "10m Walk"];
+        }
+
+        let timerInterval = null;
+        let secondsElapsed = 0;
+        let isStudying = false;
+        let isSpinning = false;
+
+        function toggleTimer() {
+            const btn = document.getElementById("start-timer-btn");
+            if (!isStudying) {
+                isStudying = true;
+                btn.innerText = "Pause";
+                btn.style.backgroundColor = "#e67e22";
+
+                timerInterval = setInterval(() => {
+                    secondsElapsed++;
+                    updateTimerDisplay();
+                }, 1000);
+            } else {
+                isStudying = false;
+                btn.innerText = "Resume";
+                btn.style.backgroundColor = "#2ecc71";
+                clearInterval(timerInterval);
+            }
+        }
+
+        function stopAndClaimTimer() {
+            if (secondsElapsed === 0) return;
+
+            clearInterval(timerInterval);
+            isStudying = false;
+            document.getElementById("start-timer-btn").innerText = "Start Study";
+            document.getElementById("start-timer-btn").style.backgroundColor = "#2ecc71";
+
+            const hoursEarned = secondsElapsed / 3600;
+
+            studyCoins += hoursEarned;
+            totalHoursStudied += hoursEarned;
+
+            secondsElapsed = 0;
+            updateTimerDisplay();
+            saveData();
+            updateUI();
+        }
+
+        function updateTimerDisplay() {
+            const hrs = Math.floor(secondsElapsed / 3600).toString().padStart(2, '0');
+            const mins = Math.floor((secondsElapsed % 3600) / 60).toString().padStart(2, '0');
+            const secs = (secondsElapsed % 60).toString().padStart(2, '0');
+            document.getElementById("timer-display").innerText = `${hrs}:${mins}:${secs}`;
+        }
+
+        function updateUI() {
+            document.getElementById("coin-count").innerText = studyCoins.toFixed(2);
+            document.getElementById("total-hours").innerText = totalHoursStudied.toFixed(2);
+
+            const list = document.getElementById("reward-list");
+            list.innerHTML = "";
+            rewards.forEach((reward, index) => {
+                const li = document.createElement("li");
+                li.innerHTML = `${reward} <button class="delete-btn" onclick="deleteReward(${index})">Delete</button>`;
+                list.appendChild(li);
+            });
+
+            updateSpinnerUI();
+        }
+
+        function updateSpinnerUI(activeIndex = -1) {
+            const spinnerBox = document.getElementById("spinner-box");
+            spinnerBox.innerHTML = "";
+            
+            if (rewards.length === 0) {
+                spinnerBox.innerHTML = "<p style='color: #888;'>No rewards added yet!</p>";
+                return;
+            }
+
+            rewards.forEach((reward, index) => {
+                const div = document.createElement("div");
+                div.className = "spinner-item" + (index === activeIndex ? " active" : "");
+                div.innerText = reward;
+                spinnerBox.appendChild(div);
+            });
+        }
+
+        function addReward() {
+            const input = document.getElementById("reward-input");
+            const text = input.value.trim();
+            
+            if (text !== "") {
+                rewards.push(text);
+                input.value = "";
+                saveData();
+                updateUI();
+            }
+        }
+
+        function deleteReward(index) {
+            rewards.splice(index, 1);
+            saveData();
+            updateUI();
+        }
+
+        function spinWheel() {
+            if (isSpinning) return;
+
+            if (studyCoins < 1) {
+                alert("Not enough coins! Study more to earn coins.");
+                return;
+            }
+            if (rewards.length === 0) {
+                alert("Add some rewards to the menu first!");
+                return;
+            }
+
+            studyCoins -= 1;
+            saveData();
+            updateUI();
+
+            isSpinning = true;
+            document.getElementById("result").innerText = "Selecting a reward...";
+
+            const winningIndex = Math.floor(Math.random() * rewards.length);
+            let currentIndex = 0;
+            let totalSteps = rewards.length * 3 + winningIndex;
+            let speed = 60;
+            let step = 0;
+
+            function animateSpin() {
+                updateSpinnerUI(currentIndex);
+                
+                currentIndex = (currentIndex + 1) % rewards.length;
+                step++;
+
+                if (step < totalSteps) {
+                    if (step > totalSteps - 12) {
+                        speed += 35;
+                    }
+                    setTimeout(animateSpin, speed);
+                } else {
+                    updateSpinnerUI(winningIndex);
+                    document.getElementById("result").innerText = `🎉 Reward Won: ${rewards[winningIndex]}!`;
+                    isSpinning = false;
+                }
+            }
+
+            animateSpin();
+        }
+
+        function saveData() {
+            localStorage.setItem('studyCoins', studyCoins);
+            localStorage.setItem('totalHoursStudied', totalHoursStudied);
+            localStorage.setItem('studyRewards', JSON.stringify(rewards));
+        }
+
+        function resetCoinsOnly() {
+            studyCoins = 0;
+            saveData();
+            updateUI();
+            document.getElementById("result").innerText = "Coins reset to 0!";
+        }
+
+        function resetData() {
+            if (confirm("Are you sure you want to reset all data and coins?")) {
+                localStorage.clear();
+                location.reload();
+            }
+        }
+
+        // Initialize UI on load
+        updateUI();
+    </script>
+</body>
+
+</html>
