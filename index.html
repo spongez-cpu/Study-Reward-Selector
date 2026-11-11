@@ -295,21 +295,7 @@
         let totalHoursStudied = parseFloat(localStorage.getItem('totalHoursStudied')) || 0;
 
         let savedRewards = localStorage.getItem('studyRewards');
-        let rewards = savedRewards ? JSON.parse(savedRewards) : [
-            { name: "15m YouTube", link: "https://www.youtube.com" },
-            { name: "Snack Break", link: "" },
-            { name: "Episode of Show", link: "" },
-            { name: "10m Walk", link: "" }
-        ];
-        
-        if (!rewards || rewards.length <= 1) {
-            rewards = [
-                { name: "15m YouTube", link: "https://www.youtube.com" },
-                { name: "Snack Break", link: "" },
-                { name: "Episode of Show", link: "" },
-                { name: "10m Walk", link: "" }
-            ];
-        }
+        let rewards = savedRewards ? JSON.parse(savedRewards) : [];
 
         let timerInterval = null;
         let secondsElapsed = 0;
@@ -399,7 +385,7 @@
             spinnerBox.innerHTML = "";
             
             if (rewards.length === 0) {
-                spinnerBox.innerHTML = "<p style='color: #888;'>No rewards added yet!</p>";
+                spinnerBox.innerHTML = "<p style='color: #888; margin: 0;'>No rewards added yet!</p>";
                 return;
             }
 
@@ -483,103 +469,6 @@
                     }
                     
                     document.getElementById("result").innerHTML = winHtml;
-                    isSpinning = false;
-                }
-            }
-
-            animateSpin();
-        }
-
-        function saveData() {
-            localStorage.setItem('studyCoins', studyCoins);
-            localStorage.setItem('totalHoursStudied', totalHoursStudied);
-            localStorage.setItem('studyRewards', JSON.stringify(rewards));
-        }
-
-        function resetCoinsOnly() {
-            studyCoins = 0;
-            saveData();
-            updateUI();
-            document.getElementById("result").innerText = "Coins reset to 0!";
-        }
-
-        function resetData() {
-            if (confirm("Are you sure you want to reset all data and coins?")) {
-                localStorage.clear();
-                location.reload();
-            }
-        }
-
-        // Initialize UI on load
-        updateUI();
-    </script>
-</body>
-
-</html>eward, index) => {
-                const div = document.createElement("div");
-                div.className = "spinner-item" + (index === activeIndex ? " active" : "");
-                div.innerText = reward;
-                spinnerBox.appendChild(div);
-            });
-        }
-
-        function addReward() {
-            const input = document.getElementById("reward-input");
-            const text = input.value.trim();
-            
-            if (text !== "") {
-                rewards.push(text);
-                input.value = "";
-                saveData();
-                updateUI();
-            }
-        }
-
-        function deleteReward(index) {
-            rewards.splice(index, 1);
-            saveData();
-            updateUI();
-        }
-
-        function spinWheel() {
-            if (isSpinning) return;
-
-            if (studyCoins < 1) {
-                alert("Not enough coins! Study more to earn coins.");
-                return;
-            }
-            if (rewards.length === 0) {
-                alert("Add some rewards to the menu first!");
-                return;
-            }
-
-            studyCoins -= 1;
-            saveData();
-            updateUI();
-
-            isSpinning = true;
-            document.getElementById("result").innerText = "Selecting a reward...";
-
-            const winningIndex = Math.floor(Math.random() * rewards.length);
-            let currentIndex = 0;
-            let totalSteps = rewards.length * 3 + winningIndex;
-            let speed = 60;
-            let step = 0;
-
-            function animateSpin() {
-                updateSpinnerUI(currentIndex);
-                
-                currentIndex = (currentIndex + 1) % rewards.length;
-                step++;
-
-                if (step < totalSteps) {
-                    if (step > totalSteps - 12) {
-                        speed += 35;
-                    }
-                    setTimeout(animateSpin, speed);
-                } else {
-                    updateSpinnerUI(winningIndex);
-                    document.getElementById("result").innerText = `🎉 Reward Won: ${rewards[winningIndex]}!`;
                     isSpinning = false;
                 }
             }
